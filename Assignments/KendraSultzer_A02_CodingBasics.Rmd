@@ -41,6 +41,7 @@ median(seq1) #computing median of seq1
 
 #3. 
 mean(seq1) > median(seq1) #is mean of seq1 greater than the median of seq1?
+#no since they're the same
 ```
 
 ## Basics Day 2
@@ -54,26 +55,43 @@ mean(seq1) > median(seq1) #is mean of seq1 greater than the median of seq1?
 8. Label the columns of your data frame with informative titles.
 
 ```{r}
-#5.
-name <- c("Bobby", "Gerald", "Martha", "Luna") #this is a character vector
-class(name)
-score <- c(57,42,99,86)
-pass <- c(TRUE,FALSE, TRUE, TRUE)
+#5. and #6.
+Name <- c("Bobby", "Gerald", "Martha", "Luna") #this is a character vector
+class(Name)
+Test_Score <- c(57,42,99,86) #this is a numeric vector
+class(Test_Score) 
+Pass <- c(TRUE,FALSE, TRUE, TRUE) #this is a logical vector
+class(Pass)
+
+#7. 
+class_grades <- cbind(Name,Test_Score,Pass) #combining vectors
+class_grades <-as.data.frame(class_grades) #transforming into data frame
+class_grades #viewing data frame
+
+#8.
+#I had already made my vectors titles informative, so there was no need to change the column names. 
 
 ```
 
 9. QUESTION: How is this data frame different from a matrix?
 
-> Answer: This data frame has different modes or data types than a matrix. 
+> Answer: This data frame has different modes or data types, including characters, numeric, AND logical.  A matrix can only have one type of mode or data type (ie numeric, logical, character, etc.). 
 
 10. Create a function with an if/else statement. Your function should determine whether a test score is a passing grade of 50 or above (TRUE or FALSE). You will need to choose either the `if` and `else` statements or the `ifelse` statement. Hint: Use `print`, not `return`. The name of your function should be informative.
 
 11. Apply your function to the vector with test scores that you created in number 5. 
 
 ```{r}
+#10. 
+Passing_grade <- function(x){
+  ifelse(x>=50,"TRUE", "FALSE")
+} #creating function with if/else statement
+
+#11.
+Passing_grade(Test_Score) #applying function to vector with test scores
 
 ```
 
 12. QUESTION: Which option of `if` and `else` vs. `ifelse` worked? Why?
 
-> Answer: 
+> Answer: "Ifelse" worked well for me because this was a simple question of whether or not the answer was 50 or greater or less than 50. I think using the "if" and "else" would have required more notation and would have been a bit confusing. 
