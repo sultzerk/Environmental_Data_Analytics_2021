@@ -39,6 +39,7 @@ setwd("/Users/lmm89/OneDrive/Duke_University/7_Spring2021/ENV872_EDA/GitRepo_EDA
 ```
 
 You may change your working directory without coding by going to the Session menu in RStudio and navigating to the Set Working Directory tab. From there, you may select from a series of options to reset your working directory. 
+Or, you can look at files --> "more"--> "set as working directory"
 
 Another option is to use the R package `here`. We will not be using this option in class, but it is growing quite popular among R users. A more detailed description and rationale can be found here: https://github.com/jennybc/here_here. 
 
@@ -78,7 +79,7 @@ library(tidyverse)
 
 Question: What happens in the console when you load a package?
 
-> Answer: 
+> Answer: The console gives you descriptions of attached packages and potential conflicts. 
 
 ### Import your datasets
 
@@ -92,7 +93,7 @@ Commons functions to import datasets and store as data frames are *read.table()*
 
 * *file = * : use this input to point to your data file. If it's on the same folder as your .Rmd then you only need to write the file name. But if it's on another folder you need to point to the path were file is located;
 * *header =* : if your file has a header you should set this to TRUE, o.w. FALSE;
-* *skip =* : if your file has rows explaining the data or any other rows on the top that need to be skipped you should just set skip to be equal to the number of row that should be skipped before reading the data. Mote that if header=TRUE, you should not skip the row with the header. The defaul is *skip=0*;
+* *skip =* : if your file has rows explaining the data or any other rows on the top that need to be skipped you should just set skip to be equal to the number of row that should be skipped before reading the data. Note that if header=TRUE, you should not skip the row with the header. The default is *skip=0*;
 * *dec =* : define *dec="."* or *dec=","* depending on how it's defined on your set. The default is ".".
 
 ```{r importdata}
@@ -100,7 +101,7 @@ Commons functions to import datasets and store as data frames are *read.table()*
 #read.csv("/Users/lmm89/OneDrive/Duke_University/7_Spring2021/ENV872_EDA/GitRepo_EDA_S2021/Environmental_Data_Analytics_2021/Data/Raw/USGS_Site02085000_Flow_Raw.csv")
 
 # Relative file path (friendly for users regardless of machine)
-USGS.flow.data <- read.csv("../Data/Raw/USGS_Site02085000_Flow_Raw.csv")   
+USGS.flow.data <- read.csv("./Data/Raw/USGS_Site02085000_Flow_Raw.csv")   
 #For knitting the .Rmd file you need to added an extra "." to the relative path
 # R Markdown documents are compiled in separate R sessions to enhance reproducibility, so you current R console has nothing to do with the compilation of the R Markdown documents.
 
@@ -108,7 +109,7 @@ USGS.flow.data <- read.csv("../Data/Raw/USGS_Site02085000_Flow_Raw.csv")
 #read.csv("../Data/Raw/USGS_Site02085000_Flow_Raw.csv")
 
 # Another option is to choose with your browser
-# read.csv(file.choose())
+#read.csv(file.choose())
 
 # To import .txt files, use read.table rather than read.csv
 #read.table()
