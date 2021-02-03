@@ -164,17 +164,18 @@ What happened to blank cells in the spreadsheet when they were imported into R?
 Notice in our dataset that our discharge and gage height observations have many NAs, meaning no measurement was recorded for a specific day. In some cases, it might be in our best interest to remove NAs from a dataset. Removing NAs or not will depend on your research question.
 
 ```{r findNA}
+#summary stats show NAs at end of output
 summary(USGS.flow.data$discharge.mean)
 summary(USGS.flow.data$gage.height.mean)
 ```
 Question: What types of research questions might make it favorable to remove NAs from a dataset, and what types of research questions might make it favorable to retain NAs in the dataset?
 
-> Answer: 
+> Answer: old data that was entered by hand might have NAs. For time series analysis, you never remove NAs.  
 
 ```{r removeNA}
 USGS.flow.data.complete <- na.omit(USGS.flow.data)
 dim(USGS.flow.data)
-dim(USGS.flow.data.complete)
+dim(USGS.flow.data.complete) #compare number of rows with original dataset
 
 mean(USGS.flow.data.complete$discharge.mean)
 sd(USGS.flow.data.complete$discharge.mean)
