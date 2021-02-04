@@ -38,21 +38,22 @@ vector3 <- c(TRUE,TRUE,TRUE,FALSE,TRUE,FALSE) #logical vector
 vector3
 
 vector1[3] # 
+vectorx <- c(1,"one") #defaults to broadest category-character
 
 # Matrices ----
-matrix1 <- matrix(1:20, nrow = 5,ncol = 4) # 
+matrix1 <- matrix(1:20, nrow = 5,ncol = 4) #converting vector into matrix 
 matrix1
-matrix2 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE) #
+matrix2 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE) #numbers increase across rows not down columns
 matrix2
-matrix3 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE, # return after comma continues the line
+matrix3 <- matrix(1:20, nrow = 5, ncol = 4, byrow = TRUE, # return after comma continues the line, gives row and column names
                   dimnames = list(c("uno", "dos", "tres", "cuatro", "cinco"), 
                                   c("un", "deux", "trois", "cat"))) #
 
-matrix1[4, ] #
-matrix1[ , 3] #
-matrix1[c(12, 14)] #
-matrix1[c(12:14)] #
-matrix1[2:4, 1:3] #
+matrix1[4, ] #everything in row 4
+matrix1[ , 3] #everything in column 3
+matrix1[c(12, 14)] #giving 12th and 14 value if matrix arranged like vector
+matrix1[c(12:14)] #giving 12th-14 values if matrix arranged like vector
+matrix1[2:4, 1:3] #2-4th row and 1-3rd column
 
 cells <- c(1, 26, 24, 68)
 rnames <- c("R1", "R2")
@@ -62,8 +63,8 @@ matrix4 <- matrix(cells, nrow = 2, ncol = 2, byrow = TRUE,
 matrix4
 
 # Lists ---- 
-list1 <- list(name = "Maria", mynumbers = vector1, mymatrix = matrix1, age = 5.3); list1
-list1[[2]]
+list1 <- list(name = "Maria", mynumbers = vector1, mymatrix = matrix1, age = 5.3); list1 #lists can be different modes
+list1[[2]] #returns to numeric not "list", use "class" to confirm
 
 # Data Frames ----
 d <- c(1, 2, 3, 4) # What type of vector?
@@ -79,11 +80,11 @@ dataframe1$ID
 ```
 Question: How do the different types of data appear in the Environment tab?
 
-> Answer: 
+> Answer: multiple dimensions appear in "data" while one dimensional data appears in "values"
 
 Question: In the R chunk below, write "dataframe1$". Press `tab` after you type the dollar sign. What happens?
 
-> Answer: 
+> Answer: You can view columns in data frames. 
 
 
 
@@ -93,25 +94,31 @@ Question: In the R chunk below, write "dataframe1$". Press `tab` after you type 
 Find a ten-day forecast of temperatures (Fahrenheit) for Durham, North Carolina. Create two vectors, one representing the high temperature on each of the ten days and one representing the low.
 
 ```{r}
-
+High <- c(53,55,54,49,53,56,53,42,36,34)
+Low <- c(25,41,32,32,28,36,26,16,22,21)
 ```
 
 Now, create two additional vectors that include the ten-day forecast for the high and low temperatures in Celsius. Use a function to create the two new vectors from your existing ones in Fahrenheit.
 
 ```{r}
-
+FtoC <- function(x){(x-32)*(5/9)}
+High_C <- FtoC(High)
+Low_C <- FtoC(Low)
 ```
 
 Combine your four vectors into a data frame and add informative column names.
 
 ```{r}
-
+Temperatures <- data.frame(High,Low,High_C,Low_C)
+names(Temperatures) <- c("HighFahrenheit", "LowFahrenheit", "HighCelsius", "LowCelsius")
 ```
 
 Use the common functions `summary` and `sd` to obtain basic data summaries of the ten-day forecast. How would you call these functions differently for the entire data frame vs. a single column? Attempt to demonstrate both options below.
 
 ```{r}
-
+summary(Temperatures)
+sd(Temperatures$LowFahrenheit) #can't do sd on dataframe- have to do it on vector
+summary(Temperatures$HighFahrenheit)
 ```
 
 ### Date objects
@@ -134,7 +141,7 @@ Remember formatting of dates in R:
 # (code must be uncommented)
 today <- Sys.Date()
 format(today, format = "%B")
-#format(today, format = "")
+format(today, format = "%A/%B")
 #format(today, format = "")
 #format(today, format = "")
 
