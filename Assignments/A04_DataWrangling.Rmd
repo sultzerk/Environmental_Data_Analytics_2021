@@ -1,6 +1,6 @@
 ---
 title: "Assignment 4: Data Wrangling"
-author: "Student Name"
+author: "Kendra Sultzer"
 output: pdf_document
 geometry: margin=2.54cm
 ---
@@ -25,8 +25,28 @@ The completed exercise is due on Tuesday, Feb 16 @ 11:59pm.
 
 ```{r, message = FALSE}
 #1
+getwd()
+library(tidyverse)
+library(lubridate)
+O3.NC.2018 <- read.csv("./Data/Raw/EPAair_O3_NC2018_raw.csv", stringsAsFactors = TRUE)
+O3.NC.2019 <- read.csv("./Data/Raw/EPAair_O3_NC2019_raw.csv", stringsAsFactors = TRUE)
+PM25.NC.2018 <- read.csv("./Data/Raw/EPAair_PM25_NC2018_raw.csv", stringsAsFactors = TRUE)
+PM25.NC.2019 <- read.csv("./Data/Raw/EPAair_PM25_NC2019_raw.csv", stringsAsFactors = TRUE)
 
 #2
+dim(O3.NC.2018)
+dim(O3.NC.2019)
+dim(PM25.NC.2018)
+dim(PM25.NC.2019) #all 4 of them have the same number of columns
+colnames(O3.NC.2018)
+colnames(O3.NC.2019)
+colnames(PM25.NC.2018)
+colnames(PM25.NC.2019) #the only different columns are the concentration ones
+str(O3.NC.2018)
+str(O3.NC.2019)
+str(PM25.NC.2018)
+str(PM25.NC.2019) #dates are just factors and not a "date" class
+
 ```
 
 ## Wrangle individual datasets to create processed files.
@@ -37,12 +57,30 @@ The completed exercise is due on Tuesday, Feb 16 @ 11:59pm.
 
 ```{r}
 #3
+O3.NC.2018$Date <- as.Date(O3.NC.2018$Date, format="%m/%d/%Y")
+O3.NC.2019$Date <- as.Date(O3.NC.2019$Date, format="%m/%d/%Y")
+PM25.NC.2018$Date <- as.Date(PM25.NC.2018$Date, format="%m/%d/%Y")
+PM25.NC.2019$Date <- as.Date(PM25.NC.2019$Date, format="%m/%d/%Y")
 
 #4
+O3.NC.2018.Processed <- select(O3.NC.2018, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+O3.NC.2019.Processed <- select(O3.NC.2019, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE )
+PM25.NC.2018.Processed <- select(PM25.NC.2018, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+PM25.NC.2019.Processed <- select(PM25.NC.2019, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
 
 #5
+PM25.NC.2018.Processed <- mutate(PM25.NC.2018.Processed, AQS_PARAMETER_DESC="PM2.5")
+PM25.NC.2019.Processed <- mutate(PM25.NC.2019.Processed, AQS_PARAMETER_DESC="PM2.5")
 
 #6
+write.csv(O3.NC.2018.Processed, row.names = FALSE, 
+          file="./Data/Processed/EPAair_O3_NC2018_Processed.csv")
+write.csv(O3.NC.2019.Processed, row.names = FALSE,
+          file="./Data/Processed/EPAair_O3_NC2019_Processed.csv")
+write.csv(PM25.NC.2018.Processed, row.names = FALSE,
+          file="./Data/Processed/EPAair_PM25_NC2018_Processed.csv")
+write.csv(PM25.NC.2019.Processed, row.names = FALSE,
+          file="./Data/Processed/EPAair_PM25_NC2019_Processed.csv")
 
 ```
 
