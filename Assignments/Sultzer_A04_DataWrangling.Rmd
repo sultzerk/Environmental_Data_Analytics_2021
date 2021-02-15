@@ -22,8 +22,16 @@ The completed exercise is due on Tuesday, Feb 16 @ 11:59pm.
 1. Check your working directory, load the `tidyverse` and `lubridate` packages, and upload all four raw data files associated with the EPA Air dataset. See the README file for the EPA air datasets for more information (especially if you have not worked with air quality data previously). 
 
 2. Explore the dimensions, column names, and structure of the datasets. 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, tidy.opts = list(width.cutoff=80),tidy=FALSE)
+
+
+```
+
+
 
 ```{r, message = FALSE}
+
 #1
 getwd()
 library(tidyverse)
@@ -100,14 +108,37 @@ write.csv(PM25.NC.2019.Processed, row.names = FALSE,
 
 ```{r}
 #7
+colnames(O3.NC.2018.Processed)
+colnames(O3.NC.2019.Processed)
+colnames(PM25.NC.2018.Processed)
+colnames(PM25.NC.2019.Processed) #columns from the 4 datasets are the same
+EPA.Air <- rbind(O3.NC.2018.Processed, O3.NC.2019.Processed,PM25.NC.2018.Processed,PM25.NC.2019.Processed)
 
 #8
+EPA.Air.Processed <- 
+  EPA.Air %>%
+  filter(Site.Name=="Linville Falls"|Site.Name=="Durham Armory"| Site.Name=="Leggett"| Site.Name=="Hattie Avenue"| Site.Name=="Clemmons Middle"| Site.Name=="Mendenhall School"| Site.Name=="Frying Pan Mountain"|  Site.Name== "West Johnston Co."| Site.Name=="Garinger High School"| Site.Name=="Castle Hayne"| Site.Name== "Pitt Agri. Center"| Site.Name== "Bryson City"| Site.Name== "Millbrook School" )%>%
+  group_by(Date,Site.Name,AQS_PARAMETER_DESC,COUNTY)%>%
+  summarise(MeanAQI=mean(DAILY_AQI_VALUE),
+            MeanLat=mean(SITE_LATITUDE),
+            MeanLong=mean(SITE_LONGITUDE))%>%
+  mutate(Month=month(Date),Year=year(Date))
+dim(EPA.Air.Processed) #these look good
+
 
 #9
-
+EPA.Air.Processed.2 <-
+  EPA.Air.Processed %>%
+  pivot_wider(
+    names_from = AQS_PARAMETER_DESC,
+    values_from=MeanAQI)
+  
 #10
+dim(EPA.Air.Processed.2)
 
 #11
+write.csv(EPA.Air.Processed.2, row.names = FALSE,
+          file="./Data/Processed/EPAair_O3_PM25_NC1718_Processed.csv")
 
 ```
 
@@ -119,13 +150,23 @@ write.csv(PM25.NC.2019.Processed, row.names = FALSE,
 
 ```{r}
 #12a
-
+EPA.Air.Summary <- 
+  EPA.Air.Processed.2 %>%
+  group_by(Site.Name,Month,Year)%>%
+  summarise(MeanOzone=mean(Ozone),
+            MeanPM2.5=mean(PM2.5))
 #12b
+EPA.Air.Summary.2 <-
+  EPA.Air.Summary %>%
+  drop_na(Month,Year)
 
+EPA.Air.Summary.3 <-
+  EPA.Air.Summary.2 %>%
+  na.omit(EPA.Air.Summary.2$Month)#made this to compare to drop_na- this applies to the whole dataframe
 #13
-
+dim(EPA.Air.Summary.2)
 ```
 
 14. Why did we use the function `drop_na` rather than `na.omit`?
 
-> Answer: 
+> Answer: Drop_na is specific to the columns, so it just dropped the instances where a month and year aren't available (in this case, none of the instances).  Here, we were just looking at values of specific rows whereas na.omit drops all NAs from the full dataframe. If we used na.omit here, we would be losing a lot of sites with just ozone or just PM2.5 recorded on that day which would not be good. 
