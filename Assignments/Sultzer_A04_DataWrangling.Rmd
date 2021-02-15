@@ -49,10 +49,10 @@ colnames(O3.NC.2018)
 colnames(O3.NC.2019)
 colnames(PM25.NC.2018)
 colnames(PM25.NC.2019) #the only different columns are the concentration ones
-str(O3.NC.2018)
-str(O3.NC.2019)
-str(PM25.NC.2018)
-str(PM25.NC.2019) #dates are just factors and not a "date" class
+str(O3.NC.2018, width=80, strict.width="cut")
+str(O3.NC.2019,width=80, strict.width="cut")
+str(PM25.NC.2018,width=80, strict.width="cut")
+str(PM25.NC.2019,width=80, strict.width="cut") #dates are just factors and not a "date" class
 
 ```
 
@@ -109,7 +109,7 @@ write.csv(PM25.NC.2019.Processed, row.names = FALSE,
 10. Call up the dimensions of your new tidy dataset.
 11. Save your processed dataset with the following file name: "EPAair_O3_PM25_NC1718_Processed.csv"
 
-```{r}
+```{r, message=FALSE}
 #7
 colnames(O3.NC.2018.Processed)
 colnames(O3.NC.2019.Processed)
@@ -157,7 +157,7 @@ write.csv(EPA.Air.Processed.2, row.names = FALSE,
 
 13. Call up the dimensions of the summary dataset.
 
-```{r}
+```{r, message=FALSE}
 #12a
 EPA.Air.Summary <- 
   EPA.Air.Processed.2 %>%
