@@ -23,8 +23,7 @@ The completed exercise is due on Tuesday, Feb 16 @ 11:59pm.
 
 2. Explore the dimensions, column names, and structure of the datasets. 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, tidy.opts = list(width.cutoff=80),tidy=FALSE)
-
+knitr::opts_chunk$set(echo = TRUE,tidy.opts=list(width.cutoff=60),tidy=FALSE)
 
 ```
 
@@ -71,10 +70,14 @@ PM25.NC.2018$Date <- as.Date(PM25.NC.2018$Date, format="%m/%d/%Y")
 PM25.NC.2019$Date <- as.Date(PM25.NC.2019$Date, format="%m/%d/%Y")
 
 #4
-O3.NC.2018.Processed <- select(O3.NC.2018, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
-O3.NC.2019.Processed <- select(O3.NC.2019, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE )
-PM25.NC.2018.Processed <- select(PM25.NC.2018, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
-PM25.NC.2019.Processed <- select(PM25.NC.2019, Date, DAILY_AQI_VALUE, Site.Name, AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+O3.NC.2018.Processed <- select(O3.NC.2018, Date, DAILY_AQI_VALUE, Site.Name, 
+                               AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+O3.NC.2019.Processed <- select(O3.NC.2019, Date, DAILY_AQI_VALUE, Site.Name, 
+                               AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE )
+PM25.NC.2018.Processed <- select(PM25.NC.2018, Date, DAILY_AQI_VALUE, Site.Name, 
+                                 AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
+PM25.NC.2019.Processed <- select(PM25.NC.2019, Date, DAILY_AQI_VALUE, Site.Name, 
+                                 AQS_PARAMETER_DESC, COUNTY:SITE_LONGITUDE)
 
 #5
 PM25.NC.2018.Processed <- mutate(PM25.NC.2018.Processed, AQS_PARAMETER_DESC="PM2.5")
@@ -112,12 +115,18 @@ colnames(O3.NC.2018.Processed)
 colnames(O3.NC.2019.Processed)
 colnames(PM25.NC.2018.Processed)
 colnames(PM25.NC.2019.Processed) #columns from the 4 datasets are the same
-EPA.Air <- rbind(O3.NC.2018.Processed, O3.NC.2019.Processed,PM25.NC.2018.Processed,PM25.NC.2019.Processed)
+EPA.Air <- rbind(O3.NC.2018.Processed, O3.NC.2019.Processed,
+                 PM25.NC.2018.Processed,PM25.NC.2019.Processed)
 
 #8
 EPA.Air.Processed <- 
   EPA.Air %>%
-  filter(Site.Name=="Linville Falls"|Site.Name=="Durham Armory"| Site.Name=="Leggett"| Site.Name=="Hattie Avenue"| Site.Name=="Clemmons Middle"| Site.Name=="Mendenhall School"| Site.Name=="Frying Pan Mountain"|  Site.Name== "West Johnston Co."| Site.Name=="Garinger High School"| Site.Name=="Castle Hayne"| Site.Name== "Pitt Agri. Center"| Site.Name== "Bryson City"| Site.Name== "Millbrook School" )%>%
+  filter(Site.Name=="Linville Falls"|Site.Name=="Durham Armory"| Site.Name==
+           "Leggett"| Site.Name=="Hattie Avenue"| Site.Name=="Clemmons Middle"| 
+           Site.Name=="Mendenhall School"| Site.Name=="Frying Pan Mountain"|  
+           Site.Name== "West Johnston Co."| Site.Name=="Garinger High School"| 
+           Site.Name=="Castle Hayne"| Site.Name== "Pitt Agri. Center"| 
+           Site.Name== "Bryson City"| Site.Name== "Millbrook School" )%>%
   group_by(Date,Site.Name,AQS_PARAMETER_DESC,COUNTY)%>%
   summarise(MeanAQI=mean(DAILY_AQI_VALUE),
             MeanLat=mean(SITE_LATITUDE),
@@ -162,7 +171,9 @@ EPA.Air.Summary.2 <-
 
 EPA.Air.Summary.3 <-
   EPA.Air.Summary.2 %>%
-  na.omit(EPA.Air.Summary.2$Month)#made this to compare to drop_na- this applies to the whole dataframe
+  na.omit(EPA.Air.Summary.2$Month)
+#made this to compare to drop_na- this applies to the whole dataframe
+
 #13
 dim(EPA.Air.Summary.2)
 ```
