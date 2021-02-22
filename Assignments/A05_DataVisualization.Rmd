@@ -1,6 +1,6 @@
 ---
 title: "Assignment 5: Data Visualization"
-author: "Student Name"
+author: "Kendra Sultzer"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -34,15 +34,37 @@ the processed data file for the Niwot Ridge litter dataset.
 
 ```{r}
 #1 
+getwd()
+library(tidyverse)
+library(cowplot)
+LakeChem.Nutrients.PP <- read.csv("./Data/Processed/NTL-LTER_Lake_Chemistry_Nutrients_PeterPaul_Processed.csv")
+Lake.Nutrients.PP.Gathered <- read.csv("./Data/Processed/NTL-LTER_Lake_Nutrients_PeterPaulGathered_Processed.csv")
+Niwot.Litter <- read.csv("./Data/Processed/NEON_NIWO_Litter_mass_trap_Processed.csv")
 
 #2 
+class(Lake.Nutrients.PP.Gathered$sampledate) #was character, not date
+Lake.Nutrients.PP.Gathered$sampledate <- as.Date(Lake.Nutrients.PP.Gathered$sampledate,format = "%Y-%m-%d")
+class(Lake.Nutrients.PP.Gathered$sampledate) #now reading as date
 
+class(LakeChem.Nutrients.PP$sampledate) #was character, not date
+LakeChem.Nutrients.PP$sampledate <- as.Date(LakeChem.Nutrients.PP$sampledate, format = "%Y-%m-%d")
+class(LakeChem.Nutrients.PP$sampledate) #now reading as date
+
+class(Niwot.Litter$collectDate) #was character, not date
+Niwot.Litter$collectDate <- as.Date(Niwot.Litter$collectDate, format="%Y-%m-%d")
+class(Niwot.Litter$collectDate) #now defined as date
 ```
 ## Define your theme
 3. Build a theme and set it as your default theme.
 
 ```{r}
+mytheme <- theme_classic(base_size = 12) + 
+  theme(axis.text = element_text(color = "black"), 
+        legend.position = "right", 
+        legend.box.background = element_rect(color="black"), legend.background = element_blank(),  plot.title=element_text(hjust = 0.5))
+#makes font size bigger, puts legend on right, puts box around legend, centers title in middle
 
+theme_set(mytheme) #setting for all subsequent plots 
 
 ```
 
@@ -52,7 +74,12 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 4. [NTL-LTER] Plot total phosphorus (`tp_ug`) by phosphate (`po4`), with separate aesthetics for Peter and Paul lakes. Add a line of best fit and color it black. Adjust your axes to hide extreme values.
 
 ```{r}
-
+Plot1 <- ggplot(LakeChem.Nutrients.PP, aes(x=po4, y=tp_ug))+
+  geom_point(aes(color=lakename, shape=lakename))+
+  xlim(0,50)+
+  labs(title="Phosphate Effect on Total Phosphorus",x="Phosphate", y="Total Phosphorus (ug)", color="Lake", shape="Lake")+
+  geom_smooth(method=lm, se=FALSE, color="black")
+print(Plot1)
 
 ```
 
@@ -60,19 +87,46 @@ For numbers 4-7, create ggplot graphs and adjust aesthetics to follow best pract
 5. [NTL-LTER] Make three separate boxplots of (a) temperature, (b) TP, and (c) TN, with month as the x axis and lake as a color aesthetic. Then, create a cowplot that combines the three graphs. Make sure that only one legend is present and that graph axes are aligned.
 
 ```{r}
+Plot2 <- ggplot(LakeChem.Nutrients.PP)+
+  geom_boxplot(aes(x=as.factor(month), y=temperature_C, color=lakename))+
+  labs(title="Temperatures by Months", x="Month", y="Temperature (C)",color="Lake")
+print(Plot2)
 
+Plot3 <- ggplot(LakeChem.Nutrients.PP)+
+  geom_boxplot(aes(x=as.factor(month), y=tp_ug, color=lakename))+
+  labs(title="Total Phosphorus by Months", x="Month", y="Total Phosphorus (ug)",color="Lake")
+print(Plot3)
+
+Plot4 <- ggplot(LakeChem.Nutrients.PP)+
+  geom_boxplot(aes(x=as.factor(month), y=tn_ug, color=lakename))+
+  labs(title="Total Nitrogen by Months", x="Month", y="Total Nitrogen (ug)",color="Lake")
+print(Plot4)
+  
+Cowplot1 <- plot_grid(
+  Plot2+theme(legend.position = "none"),
+  Plot3+theme(legend.position = "none"),
+  Plot4+theme(legend.position = "none"),
+  nrow=3
+)
+print(Cowplot1)
+legend <- get_legend(Plot3+theme(legend.box.margin = margin(0,0,0,5)))
+#creating legend component to add back into boxplot
+Cowplot2 <- plot_grid(Cowplot1, legend, rel_widths = c(2,0.4))
+print(Cowplot2)
 
 ```
 
 Question: What do you observe about the variables of interest over seasons and between lakes? 
 
-> Answer: 
+> Answer: The amounts of nitrogen don't vary drastically over the seasons, but Peter Lake appears to always be higher in total nitrogen than Paul Lake (although not very much in most months). There are also a large amount of outliers in total nitrogen throughout the months (maybe from nutrient loading in the water).  Peter Lake also has higher total phosphorus amounts than Paul Lake, and the differences between total phosphorus amounts appear to increase over the year. In contrast to these other trends, it appears that Peter lake usually has lower temperatures than Paul Lake by month, and the temperatures in general fluctuate by season as one would expect.   
 
 6. [Niwot Ridge] Plot a subset of the litter dataset by displaying only the "Needles" functional group. Plot the dry mass of needle litter by date and separate by NLCD class with a color aesthetic. (no need to adjust the name of each land use)
 
 7. [Niwot Ridge] Now, plot the same plot but with NLCD classes separated into three facets rather than separated by color. 
 
 ```{r}
+#6
+
 
 ```
 Question: Which of these plots (6 vs. 7) do you think is more effective, and why? 
