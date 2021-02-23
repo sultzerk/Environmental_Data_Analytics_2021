@@ -131,14 +131,16 @@ Question: What do you observe about the variables of interest over seasons and b
 
 ```{r, warning=FALSE}
 #6
-Needles.Plot <- ggplot(subset(Niwot.Litter, functionalGroup == "Needles"))+
+Needles.Plot <- ggplot(subset(Niwot.Litter, functionalGroup=="Needles"))+
   geom_point(aes(x=collectDate, y=dryMass, color=nlcdClass))+
   labs(title="Dry Mass of Needles by Land Cover Class", x="Collection Date", y = "Dry Mass", 
        color="Land Cover Class")+
   scale_x_date(date_breaks = "4 months", date_labels = "%b %y")+
   theme(axis.text.x = element_text(angle=45,vjust=0.5))
 print(Needles.Plot)
+```
 
+```{r, warning=FALSE, fig.height=6}
 #7
 Needles.Plot2 <- ggplot(subset(Niwot.Litter, functionalGroup == "Needles"))+
   geom_point(aes(x=collectDate, y=dryMass))+
@@ -153,5 +155,5 @@ Question: Which of these plots (6 vs. 7) do you think is more effective, and why
 
 > Answer:
 Plot #6 is a bit messy because it's hard to distinguish trends within the land 
-cover classes- the points just all overlap.  Plot #7 is nicer for seeing the 
-trends within landcover classe over time.  
+cover classes- the colored points just all overlap.  Plot #7 is nicer for seeing the 
+trends within landcover classe over time since the plots are separated by landcover.    
