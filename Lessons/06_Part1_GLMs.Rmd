@@ -123,13 +123,15 @@ Given the distribution of irradiance values, we don't have a linear relationship
 
 ```{r, fig.height = 3, fig.width = 4}
 PeterPaul.chem.nutrients <- filter(PeterPaul.chem.nutrients, 
-                                   irradianceWater != 0 & irradianceWater < 5000)
+                                   irradianceWater != 0 & irradianceWater < 5000) #gets rid of outlier
 irradiance.regression2 <- lm(data = PeterPaul.chem.nutrients, log(irradianceWater) ~ depth)
 summary(irradiance.regression2)
+#residual standard error is reduced and depth now explains 73% (up from 31%)
 
 par(mfrow = c(2,2), mar=c(4,4,4,4))
 plot(irradiance.regression2)
 par(mfrow = c(1,1))
+#these look MUCH better without the outlier
 
 # Add a line and standard error for the linear regression
 irradiancebydepth2 <- 
@@ -137,7 +139,8 @@ irradiancebydepth2 <-
   geom_smooth(method = "lm") +
   scale_y_log10() +
   geom_point() 
-print(irradiancebydepth2) 
+print(irradiancebydepth2)
+#changing to log(y)
 
 # SE - confidence interval around smooth can also be removed
 irradiancebydepth2 <- 
@@ -158,6 +161,7 @@ It is possible, and often useful, to consider multiple continuous explanatory va
 TPregression <- lm(data = subset(PeterPaul.chem.nutrients, lakename == "Paul Lake"), 
                    tp_ug ~ depth + dissolvedOxygen)
 summary(TPregression)
+#relationship is different than zero for 2 xs individually, se = 6.4, r2=30%
 
 TPplot <- ggplot(subset(PeterPaul.chem.nutrients, lakename == "Paul Lake"), 
                  aes(x = dissolvedOxygen, y = tp_ug, color = depth)) +
@@ -168,6 +172,8 @@ print(TPplot)
 par(mfrow = c(2,2), mar=c(4,4,4,4))
 plot(TPregression)
 par(mfrow = c(1,1))
+#first line is not flat- so something is missing
+#normal Q-Q plot isn't bad but there's some outliers 
 
 ```
 
@@ -181,9 +187,11 @@ PeterPaulnutrients <-
   PeterPaul.chem.nutrients %>%
   select(tn_ug:po4) %>%
   na.omit()
-PeterPaulCorr <- cor(PeterPaulnutrients)
+PeterPaulCorr <- cor(PeterPaulnutrients) #creating correlation matrix for all nutrients
+#what variables are highly correlated with each other?
 corrplot(PeterPaulCorr, method = "ellipse")
-corrplot.mixed(PeterPaulCorr, upper = "ellipse")
+corrplot.mixed(PeterPaulCorr, upper = "ellipse") #mix of number and ellipses
+#which should I add onto model?
 ```
 
 ## AIC to select variables
@@ -198,11 +206,11 @@ Paul.naomit <- PeterPaul.chem.nutrients %>%
   na.omit()
 
 TPAIC <- lm(data = Paul.naomit, tp_ug ~ depth + dissolvedOxygen + 
-              temperature_C + tn_ug + po4)
+              temperature_C + tn_ug + po4) #consider all nutrients as explanatory variables
 
 #Choose a model by AIC in a Stepwise Algorithm
 step(TPAIC)
-TPmodel <- lm(data = Paul.naomit, tp_ug ~ dissolvedOxygen + temperature_C + tn_ug)
+TPmodel <- lm(data = Paul.naomit, tp_ug ~ dissolvedOxygen + temperature_C + tn_ug) #this regression had lowest AIC
 summary(TPmodel)
-
+#r2 actually decreased which is unusual! but SE also decreased
 ```
