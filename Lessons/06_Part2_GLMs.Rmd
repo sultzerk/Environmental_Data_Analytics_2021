@@ -44,6 +44,7 @@ Litter.Totals <- Litter %>%
 summary(Litter.Totals)
 #check all value of plotID
 summary(Litter.Totals$plotID)
+#not a balanced experiment b/c some sites have more values than others
 
 # Test for normality. 
 # Note: the important assumption for GLMs is normality of residuals, 
@@ -52,10 +53,10 @@ summary(Litter.Totals$plotID)
 
 shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_040"])
 shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_041"])
-shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_046"])
+shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_046"]) #follow normal dist.
 shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_047"])
 shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_051"])
-shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_057"])
+shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_057"]) #follow normal dist.
 shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_058"])
 shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_061"])
 shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_062"])
@@ -65,6 +66,7 @@ shapiro.test(Litter.Totals$dryMass[Litter.Totals$plotID == "NIWO_067"])
 
 #results: reject null in all except two: NIWO_057 and NIWO_046
 qqnorm(Litter.Totals$dryMass); qqline(Litter.Totals$dryMass)
+#data does not follow a normal distribution- curved around straight line here
 
 # Test for equal variance
 # ANOVA is robust against departures from equal variance.
@@ -76,12 +78,14 @@ bartlett.test(Litter.Totals$dryMass ~ Litter.Totals$plotID)
 # Format ANOVA as aov
 Litter.Totals.anova <- aov(data = Litter.Totals, dryMass ~ plotID)
 summary(Litter.Totals.anova)
-
-#results: reject null hypothesis i.e. difference between a pair of group means is statiscally significant
+#F-value = mean sqplotID/meansq residual, p-value: reject so means are not the same between site
+#results: reject null hypothesis i.e. difference between a pair of group means is statistically significant
+#but it's not telling us which means aren't the same
 
 # Format ANOVA as lm
 Litter.Totals.anova2 <- lm(data = Litter.Totals, dryMass ~ plotID)
 summary(Litter.Totals.anova2)
+#intercept represents one of the sites
 
 # Checking model fit and assumptions
 # ANOVA is robust against departures from normality.
@@ -90,6 +94,7 @@ plot(Litter.Totals.anova2)
 # Post-hoc test
 # TukeyHSD() computes Tukey Honest Significant Differences
 TukeyHSD(Litter.Totals.anova)
+#outputs all of differences for sites-pvalue for multiple comparisons
 
 # Extract groupings for pairwise relationships
 Litter.Totals.groups <- HSD.test(Litter.Totals.anova, "plotID", group = TRUE)
@@ -109,7 +114,7 @@ print(Litter.Totals.plot)
 
 What information does the output give us? How might we report this information in a report?
 
-> 
+> First, reorder lists to show a to b to c to d
 
 ## TWO-WAY ANOVA
 ### Main effects
@@ -119,6 +124,7 @@ A two-way ANOVA allows us to examine the effects of two categorical explanatory 
 # Format as aov
 Litter.anova.2way <- aov(data = Litter, dryMass ~ functionalGroup + nlcdClass)
 summary(Litter.anova.2way)
+#means are statistically different
 
 # Format as lm
 Litter.anova.2way2 <- lm(data = Litter, dryMass ~ functionalGroup + nlcdClass)
@@ -138,6 +144,7 @@ The output gives test statistics for each explanatory variable as well as the in
 # Format as aov
 Litter.anova.2way3 <- aov(data = Litter, dryMass ~ functionalGroup * nlcdClass)
 summary(Litter.anova.2way3)
+#interaction term is significant
 
 # Format as lm
 Litter.anova.2way4 <- lm(data = Litter, dryMass ~ functionalGroup * nlcdClass)
@@ -149,6 +156,7 @@ If the interaction is significant, we interpret pairwise differences for the int
 ```{r}
 # Run a post-hoc test for pairwise differences
 TukeyHSD(Litter.anova.2way3)
+#holy mackerel, this is a lot of combinations of interactions of variables!
 
 Litter.interaction <- with(Litter, interaction(functionalGroup, nlcdClass))
 
@@ -163,7 +171,13 @@ Litter.groups
 # Edit this graph to make it more visually appealing.
 # Add letters to represent statistical groupings.
 Litter.anova.plot <- ggplot(Litter, aes(y = dryMass, x = nlcdClass, color = functionalGroup)) +
-  geom_boxplot()
+  geom_boxplot()+
+  labs(x="NLCD Class", y= "Dry Mass(g)", color="Functional Group")+
+   stat_summary(geom = "text", fun = max,position = position_dodge(0.8),vjust=-3,
+               label = c("d", "d", "d", "a", "d", "d", 
+                         "d", "d", "d", "d", "d", "b", 
+                         "d", "d", "d", "d", "d", "d",
+                         "cd", "bc", "d", "d", "d", "d")) #labels are not adjusted right
 print(Litter.anova.plot)
 
 ```
