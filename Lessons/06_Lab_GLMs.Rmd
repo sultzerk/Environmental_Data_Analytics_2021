@@ -11,7 +11,7 @@ editor_options:
 ## Objectives
 1. Answer questions on M5/A5
 2. Answer questions on M6 - GLMs
-3. Additional comments on videos - t-tes
+3. Additional comments on videos - t-test
 4. Practice more application GLM to real datasets
 
 
@@ -66,35 +66,35 @@ Are Ozone levels below the threshold for "good" AQI index (0-50)?
 
 > Exercise 1: State the hypotheses for testing mean of AQI index.
 
-> Answer: 
+> Answer: H0: mu >= 50 ppm, Ha: mu < 50 ppm
 
 
 ```{r}
 
 
 summary(EPAair$Ozone)
-EPAair.subsample <- sample_n(EPAair, 5000)
+EPAair.subsample <- sample_n(EPAair, 5000) #shapiro can only run on 5000 records
 
 # Evaluate assumption of normal distribution
-shapiro.test((EPAair.subsample$Ozone))
+shapiro.test((EPAair.subsample$Ozone)) #significant p-value: reject Ho so data are not normally distributed (likelihood of normal data is small)
 ggplot(EPAair, aes(x = Ozone)) +
-  geom_histogram() 
-qqnorm(EPAair$Ozone); qqline(EPAair$Ozone)
+  geom_histogram() #not wayyy away from normality
+qqnorm(EPAair$Ozone); qqline(EPAair$Ozone)#points go away from the tails
 
 O3.onesample <- t.test(EPAair$Ozone, mu = 50, alternative = "less")
-O3.onesample
+O3.onesample #reject null and say that our mean (statistically speaking)is less than 50
 
 Ozone.plot <- ggplot(EPAair, aes(x = Ozone)) +
   #geom_density(stat = "count", fill = "gray") +
   geom_density(fill = "gray") +
   geom_vline(xintercept = 50, color = "#238b45", lty = 2, size = 0.9) +
-  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0))
+  scale_x_continuous(expand = c(0, 0)) + scale_y_continuous(expand = c(0, 0)) #gets rid of gap on bottom of graph
 print(Ozone.plot)
 ```
 
 Write a sentence or two about the results of this test. Include both the results of the test and an interpretation that puts the findings in context of the research question.
 
-> 
+> On average, ozone measured in NC is less than 50 ppm (t-test, df = 6829, p<0.01). DF shows how many samples you have
 
 ### Two-sample t-test
 
@@ -112,12 +112,12 @@ var.test(EPAair$Ozone ~ EPAair$Year)
 #p-value less than 0.05 then reject null for 2018 and 2019 i.e. true ratio not equal to one
 
 ggplot(EPAair, aes(x = Ozone, color = as.factor(Year))) +
-  geom_freqpoly()
+  geom_freqpoly() #histograms follow same general humps but 2018 < 2019
 
 # Format as a t-test
 O3.twosample <- t.test(EPAair$Ozone ~ EPAair$Year)
 O3.twosample
-O3.twosample$p.value
+O3.twosample$p.value #mean values are different
 
 # Format as a GLM
 O3.twosample2 <- lm(EPAair$Ozone ~ EPAair$Year)
@@ -162,11 +162,14 @@ For the NTL-LTER dataset, can we predict PM2.5 from Ozone?
 ```{r}
 
 #Exercise 3: Run a linear regression PM2.5 by Ozone. Find the p-value and R-squared value. 
-
+the_model <- lm(data = EPAair, PM2.5~Ozone)
+summary(the_model) #R2 is only 13% but p-value is significant
 
 
 #Exercise 4: Build a scatterplot. Add a line and standard error for the linear regression. Add the regression equation to the plot
-
+ggplot(data = EPAair, aes(x=Ozone, y =PM2.5))+
+  geom_point()+
+  geom_smooth(method = "lm")
 
 
 ```
