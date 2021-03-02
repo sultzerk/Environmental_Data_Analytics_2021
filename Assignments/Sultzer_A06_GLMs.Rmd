@@ -147,13 +147,13 @@ summary(Temp.anova2)
 
 13. Is there a significant difference in mean temperature among the lakes? Report your findings. 
 
-> Answer: Yes there is significant difference in mean temperatures among the lakes (P<0.05).However, without post-processing, we can't tell which lakes are different from which lakes.     
+> Answer: Yes there is significant difference in mean temperatures among the lakes (P<0.05).However, without post-processing, we can't tell which lakes are different from each other.     
 
 
 
 14. Create a graph that depicts temperature by depth, with a separate color for each lake. Add a geom_smooth (method = "lm", se = FALSE) for each lake. Make your points 50 % transparent. Adjust your y axis limits to go from 0 to 35 degrees. Clean up your graph to make it pretty. 
 
-```{r scatterplot.2}
+```{r scatterplot.2, fig.width=9}
 #14.
 temp.depth.lake <- ggplot(data = NTL.subset, aes(x=depth, y=temperature_C, color=lakename))+
   geom_point(alpha=0.5)+
@@ -174,7 +174,7 @@ TukeyHSD(Temp.anova)
 
 16.From the findings above, which lakes have the same mean temperature, statistically speaking, as Peter Lake? Does any lake have a mean temperature that is statistically distinct from all the other lakes?
 
->Answer: Ward Lake and Paul Lake are the only 2 lakes that have the same mean temperature as Peter Lake (p>0.05).  No lakes have a mean temperature that is statistically distinct from all the other lakes.  Every lake's mean temperature is significantly correlated to at least one other lake's mean temperature. 
+>Answer: Ward Lake and Paul Lake are the only 2 lakes that have the same mean temperature as Peter Lake (p>0.05).  No lakes have a mean temperature that is statistically distinct from all the other lakes.  Every lake's mean temperature is significantly similar to at least one other lake's mean temperature. 
 
  
 
