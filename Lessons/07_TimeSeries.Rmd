@@ -36,12 +36,12 @@ mytheme <- theme_classic(base_size = 14) +
         legend.position = "top")
 theme_set(mytheme)
 
-#Read Eno river data
+#Read Eno river data, this data is daily
 EnoDischarge <- read.csv("./Data/Processed/USGS_Site02085000_Flow_Processed.csv",
                          stringsAsFactors = TRUE)
 EnoDischarge$datetime <- as.Date(EnoDischarge$datetime, format = "%Y-%m-%d")
 
-#Read wind speed data
+#Read wind speed data, this data is monthly
 wind_data <- read.csv(file="./Data/Raw/Wind_Speed_PortArthurTX.csv",header=TRUE,
                       stringsAsFactors = TRUE)
 wind_data$DATE <- ym(wind_data$DATE)
@@ -116,16 +116,21 @@ Note: time series objects must be equispaced. In our case, we have daily data wi
 
 ```{r}
 EnoDischarge.late_ts <- ts(EnoDischarge.late$discharge.mean, start = c(1985,1), frequency = 365)
+#define starting point, when the first observation is, frequecny of observations-daily data
+head(EnoDischarge.late_ts)
 ```
 
 The `stl` function decomposes the time series object into its component parts. We must specify that the window for seasonal extraction is either "periodic" or a specific number of at least 7. The decomposition proceeds through a loess (locally estimated scatterplot smoothing) function.
 
 ```{r}
 ?stl
+#first argument is univariate time series to be decomposed
+#s.window is the seasonal window
 # Generate the decomposition
 EnoDischarge.late_Decomposed <- stl(EnoDischarge.late_ts, s.window = "periodic")
 
 # Visualize the decomposed series. 
+#remainder is the error term
 plot(EnoDischarge.late_Decomposed)
 
 # We can extract the components and turn them into data frames
@@ -179,12 +184,14 @@ The Eno River discharge data doesn't have any short periods of missing data, so 
 ```{r}
 head(wind_data)
 summary(wind_data$AWND)
+#only one NA in average wind per month (AWND)
 
 # Adding new column with no missing obs, just for illustration purpose
 # In real applications you will simply replace NAs
 wind_data_clean <- 
   wind_data %>% 
   mutate( AWND.clean = zoo::na.approx(AWND) )
+#na.approx = used to interpolate missing values using linear or spline interpolation type within zoo package
 
 summary(wind_data_clean$AWND.clean)
 #Note the NA is gone
@@ -193,6 +200,7 @@ ggplot(wind_data_clean ) +
   geom_line(aes(x = DATE, y = AWND.clean), color = "red") +
   geom_line(aes(x = DATE, y = AWND), color = "black") +
   ylab("Average Wind Speed") 
+#missing observation filled in in red with interpolation
 ```
 
 ### Monotonic trend analysis, continued
@@ -223,24 +231,26 @@ f_month <- month(first(wind_data_clean$DATE))
 f_year <- year(first(wind_data_clean$DATE))
 wind_data_ts <- ts(wind_data_clean$AWND.clean,
                    start=c(f_year,f_month),
-                   frequency=12) 
+                   frequency=12) #measured monthly
 
 #decompose
 wind_data_decomp <- stl(wind_data_ts,s.window = "periodic")
 plot(wind_data_decomp)
 
-# Run SMK test
+# Run SMK testo- this is the only test that can handle seasonal data
 wind_data_trend1 <- Kendall::SeasonalMannKendall(wind_data_ts)
 
 # Inspect results
-wind_data_trend1
+wind_data_trend1 #p-value is small- reject that data is stationary so we have a trend
 summary(wind_data_trend1)
 
 
 wind_data_trend2 <- trend::smk.test(wind_data_ts)
 # Inspect results
-wind_data_trend2
-summary(wind_data_trend2)
+wind_data_trend2 
+summary(wind_data_trend2) 
+#results of tau for each season of year
+#some seasons there is a stronger tendency to decrease (higher negative S value)
 
 #Visualization
 wind_data_plot <-
@@ -255,7 +265,7 @@ print(wind_data_plot)
 
 What would we conclude based on these findings? 
 
-> Answer:
+> Answer: negative slope showing decreased trend of average wind speed over time
 
 
 ## Forecasting with Autoregressive and Moving Average Models (ARMA)
