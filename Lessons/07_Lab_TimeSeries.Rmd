@@ -81,15 +81,20 @@ BRA_complete <- inner_join(Rainfall_BR_processed,Temp_BR_processed)
 ```{r}
 
 #Exercise 5: Check if there is any missing data for both temperature and rainfall series.
-
+summary(BRA_complete) #no "NA"s
 
 
 
 #Exercise 6: Plot both series over time on separate plots. Add a trend line using geom_smooth(). Can you say something about the trend just by visualizing the data?
+Temp.plot <- ggplot(BRA_complete, aes(x=Date, y=Temperature_C))+
+  geom_line()+
+  geom_smooth(method = "lm")
+Temp.plot #slight upward trend
 
-
-
-
+Rain.plot <- ggplot(BRA_complete, aes(x=Date, y=Rainfall))+
+  geom_line()+
+  geom_smooth(method = "lm")
+Rain.plot #pretty flat or perhaps stationary
 
 
 ```
@@ -98,9 +103,17 @@ BRA_complete <- inner_join(Rainfall_BR_processed,Temp_BR_processed)
 
 ```{r}
 #Exercise 7: Create a time series objects for each series using ts(). Make sure you specify the starting point and frequency.
+# Generate time series (trend test needs ts, not data.frame)
+f_month <- month(first(BRA_complete$Date))
+f_year <- year(first(BRA_complete$Date))
+temp_ts <- ts(BRA_complete$Temperature_C,
+                   start=c(f_year,f_month),
+                   frequency=12) #measured monthly
+rain_ts <-ts(BRA_complete$Rainfall,
+                   start=c(f_year,f_month),
+                   frequency=12) #measured monthly
 
-
-
+#ts requires a certain number of steps between each cycle- that's why we interpolate any missing data
 ```
 
 
@@ -114,31 +127,44 @@ A given time series can be made up of several component series:
 4. (optional) A **cyclical** component, which repeats over periods greater than the seasonal component. A good example of this is El Niño Southern Oscillation (ENSO) cycles, which occur over a period of 2-8 years.
 
 
-The `stl` function decomposes the time series object into its component parts. We must specify that the window for seasonal extraction is either "periodic" or a specific number of at least 7. The decomposition proceeds through a loess (locally estimated scatterplot smoothing) function.
+The `stl` function decomposes the time series object into its component parts. We must specify that the window for seasonal extraction is either "periodic" (according to your data, like 12) or a specific number of at least 7. The decomposition proceeds through a loess (locally estimated scatterplot smoothing) function.
 
 ```{r}
 
 # Exercise 8: Use the stl() function to decompose both series. 
 # Visualize the decomposed series using plot(). What components can you identify?
+temp_decomp <- stl(temp_ts,s.window = "periodic")
+plot(temp_decomp)
 
-
-
-
+rain_decomp <- stl(rain_ts,s.window = "periodic")
+plot(rain_decomp)
 
 
 # Exercise 9: Use the times series object generated with the stl() to extract the 
 # components of each series and turn them into data frames.
+temp_components <- as.data.frame(temp_decomp$time.series[,1:3])
+
+temp_components <- mutate(temp_components,
+         Temperature_C= BRA_complete$Temperature_C,     
+        Date = BRA_complete$Date)
 
 
+rain_components <- as.data.frame(rain_decomp$time.series[,1:3])
 
-
-
+rain_components <- mutate(rain_components,
+        Rainfall = BRA_complete$Rainfall,     
+        Date = BRA_complete$Date)
 
 # Exercise 10: Visualize how the trend maps onto the data for both series
+temp.trend.plot <- ggplot(temp_components) +
+  geom_line(aes(y = Temperature_C, x = Date),  size = 0.25, color="grey") +
+  geom_line(aes(y = trend, x = Date), color = "#c13d75ff",size=1)
+print(temp.trend.plot)
 
-
-
-
+rain.trend.plot <- ggplot(rain_components) +
+  geom_line(aes(y = Rainfall, x = Date),  size = 0.25, color="grey") +
+  geom_line(aes(y = trend, x = Date), color = "#c13d75ff",size=1)
+print(rain.trend.plot)
 
 
 ```
@@ -158,19 +184,30 @@ Monotonic trends are a gradual shift over time that is consistent in direction. 
 
 # Exercise 11: Apply one of the trend detection test to the original data set. Remember that the data has seasonal component, which test can be applied in this case?
 
+#run SMK tests
+rain_data_trend1 <- Kendall::SeasonalMannKendall(rain_ts)
+rain_data_trend2 <- smk.test(rain_ts)
 
+temp_data_trend <- smk.test(temp_ts)
 
+#inspect results
+rain_data_trend1 #trend is significant! small p-value
+summary(rain_data_trend1)
+summary(rain_data_trend2) #which months are significantly different
 
-
-
-
-
+temp_data_trend
+summary(temp_data_trend)#trend is significant
 
 # Exercise 12: Now remove the seasonality and apply another test. Compare the results with what you obtained on Exercise 9.
 
+#remove seasonality (subtract seasonal values from observed values)
+ts_rain_noseason <- ts(data=rain_components$Rainfall-rain_components$seasonal,
+                       start=c(f_year, f_month),
+                       frequency = 12)
 
-
-
+#apply Mann Kendall
+mk_rain <- trend::mk.test(ts_rain_noseason)
+mk_rain
 
 
 
