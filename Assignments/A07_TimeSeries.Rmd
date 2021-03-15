@@ -1,6 +1,6 @@
 ---
 title: "Assignment 7: Time Series Analysis"
-author: "Student Name"
+author: "Kendra Sultzer"
 output: pdf_document
 geometry: margin=2.54cm
 editor_options: 
@@ -31,7 +31,33 @@ The completed exercise is due on Tuesday, March 16 at 11:59 pm.
 
 ```{r, message = FALSE}
 #1
+getwd() #looks good
+library(tidyverse)
+library(lubridate)
+library(zoo)
+library(trend)
 
+mytheme <- theme_classic(base_size = 12) + 
+  theme(axis.text = element_text(color = "black"), 
+        legend.position = "right", 
+        legend.box.background = element_rect(color="black"), legend.background = element_blank(),  
+        plot.title=element_text(hjust = 0.5))
+#makes font size bigger, puts legend on right, puts box around legend, centers title in middle
+theme_set(mytheme) #setting for all subsequent plots
+
+#2
+Garinger_2010 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2010_raw.csv")
+Garinger_2011 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2011_raw.csv")
+Garinger_2012 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2012_raw.csv")
+Garinger_2013 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2013_raw.csv")
+Garinger_2014 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2014_raw.csv")
+Garinger_2015 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2015_raw.csv")
+Garinger_2016 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2016_raw.csv")
+Garinger_2017 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2017_raw.csv")
+Garinger_2018 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2018_raw.csv")
+Garinger_2019 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2019_raw.csv")
+GaringerOzone <- rbind(Garinger_2010, Garinger_2011, Garinger_2012, Garinger_2013, Garinger_2014, Garinger_2015, Garinger_2016, Garinger_2017, Garinger_2018, Garinger_2019)
+#this last one combines these 10 datasets together
 ```
 
 ## Wrangle
@@ -46,10 +72,17 @@ The completed exercise is due on Tuesday, March 16 at 11:59 pm.
 
 ```{r}
 # 3
+class(GaringerOzone$Date)
+GaringerOzone$Date <- as.Date(GaringerOzone$Date, format="%m/%d/%Y")
+class(GaringerOzone$Date) #it worked!
 
 # 4
+Garinger_subset <-GaringerOzone %>%
+  select(Date, Daily.Max.8.hour.Ozone.Concentration, DAILY_AQI_VALUE)
 
 # 5
+Days <- as.data.frame(seq(as.Date("2010-01-01"), as.Date("2019-12-31"), "days"))
+rename(Days, `seq(as.Date("2010-01-01"), as.Date("2019-12-31"), "days")`= Date) #this isn't right!
 
 # 6
 
