@@ -82,10 +82,10 @@ Garinger_subset <-GaringerOzone %>%
 
 # 5
 Days <- as.data.frame(seq(as.Date("2010-01-01"), as.Date("2019-12-31"), "days"))
-rename(Days, `seq(as.Date("2010-01-01"), as.Date("2019-12-31"), "days")`= Date) #this isn't right!
+colnames(Days) <- "Date"
 
 # 6
-
+GaringerOzone <- left_join(Days, Garinger_subset) #listing Days first b/c want to keep all these rows
 
 ```
 
@@ -95,10 +95,15 @@ rename(Days, `seq(as.Date("2010-01-01"), as.Date("2019-12-31"), "days")`= Date) 
 
 ```{r}
 #7
-
+Ozone.time <- ggplot(GaringerOzone,aes(x=Date, y=Daily.Max.8.hour.Ozone.Concentration))+
+  geom_line()+
+  geom_smooth(method="lm")+
+  labs(title = "Garinger High School Ozone Concentrations", y="Ozone Concentration (ppm)")+
+  scale_x_date(date_labels="%Y", date_breaks = "1 year")
+Ozone.time
 ```
 
->Answer:
+>Answer: This plot does not show a strong trend in ozone concentration over time.  The trend appears pretty flat or unaffected over time.  However, it appears that there might be a sort of seasonal component within the data. 
 
 ## Time Series Analysis
 
@@ -108,17 +113,22 @@ Study question: Have ozone concentrations changed over the 2010s at this station
 
 ```{r}
 #8
-
+summary(GaringerOzone$Daily.Max.8.hour.Ozone.Concentration) #there are 63 NAs
+GaringerOzone$Daily.Max.8.hour.Ozone.Concentration <- zoo::na.approx(GaringerOzone$Daily.Max.8.hour.Ozone.Concentration)
+summary(GaringerOzone$Daily.Max.8.hour.Ozone.Concentration) #no NAs!
 ```
 
-> Answer: 
+> Answer: We didn't use a piecewise constant or spline function because there were NAs directly next to each other.  It was better to just use the "connect the dots" approach since ppms are continuous. 
 
 
 9. Create a new data frame called `GaringerOzone.monthly` that contains aggregated data: mean ozone concentrations for each month. In your pipe, you will need to first add columns for year and month to form the groupings. In a separate line of code, create a new Date column with each month-year combination being set as the first day of the month (this is for graphing purposes only)
 
 ```{r}
 #9
-
+GaringerOzone.monthly <- GaringerOzone  %>%
+  mutate(Month = as.yearmon(Date, "%Y %m")) %>%
+  group_by(Month)%>%
+  summarise(Monthly.mean=mean(Daily.Max.8.hour.Ozone.Concentration))
 ```
 
 
