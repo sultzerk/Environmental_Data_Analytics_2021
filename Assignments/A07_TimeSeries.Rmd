@@ -103,7 +103,7 @@ Ozone.time <- ggplot(GaringerOzone,aes(x=Date, y=Daily.Max.8.hour.Ozone.Concentr
 Ozone.time
 ```
 
->Answer: This plot does not show a strong trend in ozone concentration over time.  The trend appears pretty flat or unaffected over time.  However, it appears that there might be a sort of seasonal component within the data. 
+>Answer: This plot does not show a strong trend in ozone concentration over time.  The trend appears pretty flat, although there might be a slight decrease over time.  However, it appears that there might be a sort of seasonal component within the data. 
 
 ## Time Series Analysis
 
@@ -118,7 +118,7 @@ GaringerOzone$Daily.Max.8.hour.Ozone.Concentration <- zoo::na.approx(GaringerOzo
 summary(GaringerOzone$Daily.Max.8.hour.Ozone.Concentration) #no NAs!
 ```
 
-> Answer: We didn't use a piecewise constant or spline function because there were NAs directly next to each other.  It was better to just use the "connect the dots" approach since ppms are continuous. 
+> Answer: We didn't use a piecewise constant or spline function because there were NAs directly next to each other.  It was better to just use the "connect the dots" approach since ppms are continuous. spline won't be accurate b/c it's quadratic so it might be higher than normal and piecewise- how do we know which value is closest to it?
 
 
 9. Create a new data frame called `GaringerOzone.monthly` that contains aggregated data: mean ozone concentrations for each month. In your pipe, you will need to first add columns for year and month to form the groupings. In a separate line of code, create a new Date column with each month-year combination being set as the first day of the month (this is for graphing purposes only)
@@ -129,6 +129,8 @@ GaringerOzone.monthly <- GaringerOzone  %>%
   mutate(Month = as.yearmon(Date, "%Y %m")) %>%
   group_by(Month)%>%
   summarise(Monthly.mean=mean(Daily.Max.8.hour.Ozone.Concentration))
+
+GaringerOzone.monthly$Date <- as.Date(GaringerOzone.monthly$Month, format="%b %Y")
 ```
 
 
@@ -185,15 +187,20 @@ summary(GaringerOzone.monthly.trend2)
 
 ```{r}
 # 13
-
-
-
+Mean.month.ozone.plot <-
+  ggplot(GaringerOzone.monthly, aes(x=Date, y = Monthly.mean))+
+  geom_line()+
+  geom_point()+
+  labs(title="Garinger High School Mean Monthly Ozone Concentrations", y="Monthly Mean Ozone Concentration (ppm)")+
+  scale_x_date(date_labels = "%b %Y", date_breaks = "1 year")+
+  geom_smooth(method="lm")
+Mean.month.ozone.plot
 
 ```
 
 14. To accompany your graph, summarize your results in context of the research question. Include output from the statistical test in parentheses at the end of your sentence. Feel free to use multiple sentences in your interpretation.
 
-> Answer: 
+> Answer: From our analysis, we can say that ozone concentrations have changed over the 2010s at Garinger High School (p)
 
 15. Subtract the seasonal component from the `GaringerOzone.monthly.ts`. Hint: Look at how we extracted the series components for the EnoDischarge on the lesson Rmd file.
 
