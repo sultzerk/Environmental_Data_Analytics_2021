@@ -208,6 +208,7 @@ ts_rain_noseason <- ts(data=rain_components$Rainfall-rain_components$seasonal,
 #apply Mann Kendall
 mk_rain <- trend::mk.test(ts_rain_noseason)
 mk_rain
+#low p-value so there's a trend
 
 
 

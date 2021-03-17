@@ -56,7 +56,8 @@ Garinger_2016 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2016_
 Garinger_2017 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2017_raw.csv")
 Garinger_2018 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2018_raw.csv")
 Garinger_2019 <- read.csv("./Data/Raw/Ozone_TimeSeries/EPAair_O3_GaringerNC2019_raw.csv")
-GaringerOzone <- rbind(Garinger_2010, Garinger_2011, Garinger_2012, Garinger_2013, Garinger_2014, Garinger_2015, Garinger_2016, Garinger_2017, Garinger_2018, Garinger_2019)
+GaringerOzone <- rbind(Garinger_2010, Garinger_2011, Garinger_2012, Garinger_2013, Garinger_2014, 
+                       Garinger_2015, Garinger_2016, Garinger_2017, Garinger_2018, Garinger_2019)
 #this last one combines these 10 datasets together
 ```
 
@@ -118,7 +119,7 @@ GaringerOzone$Daily.Max.8.hour.Ozone.Concentration <- zoo::na.approx(GaringerOzo
 summary(GaringerOzone$Daily.Max.8.hour.Ozone.Concentration) #no NAs!
 ```
 
-> Answer: We didn't use a piecewise constant or spline function because there were NAs directly next to each other.  It was better to just use the "connect the dots" approach since ppms are continuous. spline won't be accurate b/c it's quadratic so it might be higher than normal and piecewise- how do we know which value is closest to it?
+> Answer: We didn't use a piecewise constant or spline function because there were NAs directly next to each other.  It was better to just use the "connect the dots" approach since ppms are continuous. The spline won't be accurate because it's quadratic so it will probably output values above the expected.  For the piecewise, it's difficult to know which value is closest to it.  Thus, the linear interpolation is the best bet. 
 
 
 9. Create a new data frame called `GaringerOzone.monthly` that contains aggregated data: mean ozone concentrations for each month. In your pipe, you will need to first add columns for year and month to form the groupings. In a separate line of code, create a new Date column with each month-year combination being set as the first day of the month (this is for graphing purposes only)
@@ -181,7 +182,7 @@ summary(GaringerOzone.monthly.trend2)
 
 ```
 
-> Answer: The seasonal Mann-Kendall is the most appropriate trend analysis here since there's an obvious seasonal component to the data. If there wasn't a seasonal component, we would consider one of the other tests like linear regression, regular Mann-Kendall, or Spearman Rho. 
+> Answer: The seasonal Mann-Kendall is the most appropriate trend analysis here since there's an obvious seasonal component to the data (as seen in the plotting of the components). If there wasn't a seasonal component, we would consider one of the other tests like linear regression, regular Mann-Kendall, or Spearman Rho. 
 
 13. Create a plot depicting mean monthly ozone concentrations over time, with both a geom_point and a geom_line layer. Edit your axis labels accordingly.
 
@@ -191,8 +192,10 @@ Mean.month.ozone.plot <-
   ggplot(GaringerOzone.monthly, aes(x=Date, y = Monthly.mean))+
   geom_line()+
   geom_point()+
-  labs(title="Garinger High School Mean Monthly Ozone Concentrations", y="Monthly Mean Ozone Concentration (ppm)")+
+  labs(title="Garinger High School Mean Monthly Ozone Concentrations", 
+       y="Monthly Mean Ozone Concentration (ppm)")+
   scale_x_date(date_labels = "%b %Y", date_breaks = "1 year")+
+  theme(axis.text.x = element_text(angle = 45, hjust=1))+
   geom_smooth(method="lm")
 Mean.month.ozone.plot
 
@@ -200,7 +203,7 @@ Mean.month.ozone.plot
 
 14. To accompany your graph, summarize your results in context of the research question. Include output from the statistical test in parentheses at the end of your sentence. Feel free to use multiple sentences in your interpretation.
 
-> Answer: From our analysis, we can say that ozone concentrations have changed over the 2010s at Garinger High School (p)
+> Answer: From our analysis, we can say that ozone concentrations have not changed significantly over the 2010s at Garinger High School in North Carolina (p=0.05). As the date increases, the mean ozone concentrations have not increased or decreased.  Even though there appears to be a seasonal trend, the results of the seasonal Mann-Kendall test do not support this. 
 
 15. Subtract the seasonal component from the `GaringerOzone.monthly.ts`. Hint: Look at how we extracted the series components for the EnoDischarge on the lesson Rmd file.
 
@@ -208,14 +211,25 @@ Mean.month.ozone.plot
 
 ```{r}
 #15
+Monthly.ozone.components <- as.data.frame(GaringerOzone.monthly.decomp$time.series[,1:3])
+#extracting seasonal, trend, and remainder from time series
 
+Monthly.ozone.components <- mutate(Monthly.ozone.components, 
+                                   Observed=GaringerOzone.monthly$Monthly.mean,
+                                   Date=GaringerOzone.monthly$Month)
+#adding in observed data and month
+
+#remove seasonality (subtract seasonal values from observed values)
+ozone.ts.noseason <- ts(data=Monthly.ozone.components$Observed-Monthly.ozone.components$seasonal,
+                        start=c(f_year,f_month),
+                        frequency=12)
 
 
 #16
-
-
-
+#apply Mann Kendall
+MK_ozone <- trend::mk.test(ozone.ts.noseason)
+MK_ozone
 
 ```
 
-> Answer: 
+> Answer: The data without the seasonal component is now showing a significant trend (p = 0.007) according to the Mann Kendall test.  Thus, without the seasonal component, ozone concentrations have changed over the 2010s at Garinger High School in North Carolina. As the date has increased, the monthly mean ozone concentrations have decreased.  
