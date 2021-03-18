@@ -53,6 +53,7 @@ epa_pm25_sites_sf <- read_csv('./Data/Raw/EPAair_PM25_NC2018_raw.csv') %>%
     maxPM = max(`Daily Mean PM2.5 Concentration`)
     ) %>% 
   st_as_sf(coords = c('SITE_LONGITUDE','SITE_LATITUDE'), crs=4269)
+#st as sf converts into spatial feature dataframe, WGS 1984
 
 #Inspect the object
 class(epa_pm25_sites_sf)
@@ -76,11 +77,12 @@ Below we read in the USA counties shapefile, filtering for just the NC features 
 #
 counties_sf<- st_read('./Data/Spatial/cb_2018_us_county_20m.shp') %>% 
   filter(STATEFP == 37) #Filter for just NC Counties
+#geometry is a list b/c the counties are polygons
 
 #
 colnames(counties_sf)
 
-#
+#look at coordinate system
 st_crs(counties_sf) 
 
 
@@ -88,13 +90,13 @@ st_crs(counties_sf)
 nrow(counties_sf)
 
 #Reveal the extent of this dataset via the st_bbox() function
-st_bbox(counties_sf)
+st_bbox(counties_sf) #creates spatial bounding box around dataset
 
 #View the data
 head(counties_sf)
 
 #Plot the data, colored by area of land in each county
-mapView(counties_sf, zcol = "AWATER")
+mapView(counties_sf, zcol = "AWATER") #color based on relative amt of water
 ```
 
 ### 2.2.2 Read in and explore 8-digit HUC watersheds for NC
@@ -103,19 +105,19 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r read HUCs shapefile}
 #Read the shapefile into an sf dataframe named "huc8_sf"
-
+huc8_sf <- st_read('./Data/Spatial/NCHUC8.shp')
 
 #Reveal the columns
-
+colnames(huc8_sf)
 
 #Check the CRS
-
+st_crs(huc8_sf)
 
 #Examine some records
-
+head(huc8_sf)
 
 #View the data as a map, colored by the acreage in each
-
+mapView(huc8_sf, zcol="ACRES")
 
 ```
 
@@ -125,11 +127,13 @@ mapView(counties_sf, zcol = "AWATER")
 
 ```{r Select the Upper Neuse HUC 8}
 #Read the shapefile into an sf dataframe
+UpperNeuse <- st_read('./Data/Spatial/NCHUC8.shp')%>% 
+  filter(SUBBASIN == "Upper Neuse")
 
 
-
-#Create a map
-
+#Create a map on top of a map!
+mapView(huc8_sf, col.regions="orange")+
+  mapView(UpperNeuse, col.regions="purple")
 
 ```
 
@@ -170,7 +174,7 @@ nc_powerplants_sf <- nc_powerplants_sf %>%
 
 # Examine counts by fuel type
 ggplot(nc_powerplants_sf) + 
-  geom_sf(aes(color = PRIM_FUEL)) 
+  geom_sf(aes(color = PRIM_FUEL)) #doesn't have nice map background
 ```
 
 # 3. WORKING WITH SPATIAL DATA
@@ -191,7 +195,7 @@ We'll focus on just a few variables: Estimates of people in poverty ("E_POV") an
 #Read the 2018 SVI county-level dataset for NC
 svi2018_nc_raw <- read.csv(
   'https://svi.cdc.gov/Documents/Data/2018_SVI_Data/CSV/States_Counties/NorthCarolina_COUNTY.csv',
-  colClasses = c('FIPS' = 'factor')) %>% 
+  colClasses = c('FIPS' = 'factor')) %>% #need to define FIPS as factor so don't lose impt leading zero
   select(COUNTY, FIPS, LOCATION, E_TOTPOP, E_POV, E_MINRTY)
 
 #Check structure
