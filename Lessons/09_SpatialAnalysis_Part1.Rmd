@@ -81,7 +81,8 @@ EPAair_PM_avg <- EPAair_PM25_NC2018_raw %>%
 
 #Plot the data using longitude and latitude as X and Y
 ggplot(EPAair_PM_avg, aes(x=SITE_LONGITUDE, y=SITE_LATITUDE)) + 
-  geom_point(aes(color=meanPM), size=4, alpha=0.5) + coord_equal() 
+  geom_point(aes(color=meanPM), size=4, alpha=0.5) + coord_equal()
+#coord_equal helps plot what it looks like on a map- looks similar to state of NC
 ```
 
 This is more of a proof of concept than a useful map. We can sort of visualize spatial patterns in the data, but without context of scale or location, it's somewhat difficult. We can greatly improve this map with the help of some mapping packages for R...
@@ -102,7 +103,7 @@ myMap = mapview(EPAair_PM_avg,
          crs = 4269, 
          grid = FALSE)
 
-#Show the map
+#Show the map- this is interactive and you can zoom
 myMap
 
 #Save the map (if you want) [Currently not working: https://github.com/r-spatial/mapview/issues/312]
@@ -120,14 +121,15 @@ See <http://rstudio.github.io/leaflet/> for more info
 
 #Create the map and add Tiles
 myMap  <- leaflet(data=EPAair_PM_avg) %>% 
-  addTiles() %>% 
+  addTiles() %>% #tiles are the backgrounds
   addCircleMarkers(~SITE_LONGITUDE,~SITE_LATITUDE,
                    radius=(~meanPM*2),
                    stroke = FALSE, 
                    fillOpacity = 0.3,
-                   popup = ~as.character(`Site.Name`))
+                   popup = ~as.character(`Site.Name`)) #when you click on the circle marker, it'll show the name
 #Show the map
 myMap
+#you can save the map - export- save as webpage
 ```
 
 There's much more we can do to make these maps prettier and more powerful, but we'll come back to that. But take time to notice the power of mapping: like previous plots, we are able to interpret patterns in our dataset, but in geographically mapping our data, we can visualize these patterns in a much richer context by viewing them next to other spatial datasets (e.g. our basemaps). Ok, let's continue talking about spatial features in the vector model...
@@ -211,15 +213,16 @@ colnames(sf_EPAair_PM_avg)
 
 #What is the class of the values in the geometry column?
 class(sf_EPAair_PM_avg$geometry)
+#it's a point column
 
 #What does this look like
 head(sf_EPAair_PM_avg)
 
 #Plot the geometry...
-plot(sf_EPAair_PM_avg$geometry)
+plot(sf_EPAair_PM_avg$geometry)#looks like the shape of NC
 
 #Plot everything
-plot(sf_EPAair_PM_avg)
+plot(sf_EPAair_PM_avg)#shows site name, county, meanPM, and maxPM separately
 
 ```
 
@@ -237,8 +240,8 @@ mapview(sf_EPAair_PM_avg)
 
 #View multiple attributes with MapView
 mapview(sf_EPAair_PM_avg, 
-        zcol='meanPM', 
-        cex='maxPM')
+        zcol='meanPM', #color of mean
+        cex='maxPM') #size of max
 
 #Plot with leaflet using markers
 leaflet(sf_EPAair_PM_avg) %>% 
@@ -268,6 +271,7 @@ m
 # Save the map
 library(htmlwidgets)
 #saveWidget(m, file='m.html')
+#or do export-save as webpage
 
 ```
 
@@ -287,7 +291,7 @@ With our EPA data now stored as geometric objects (vs coordinate pairs), we can 
 #Buffer the Durham Armory point 0.1 degrees
 Durham_buffer <- sf_EPAair_PM_avg %>% 
   filter(Site.Name == 'Durham Armory') %>% 
-  st_buffer(0.1)
+  st_buffer(0.1) #0.1 unit which here is 0.1 degree
 
 #View the result
 mapView(Durham_buffer)
@@ -401,13 +405,13 @@ Applying our knowledge of CRS, let's transform our EPA sites from its native geo
 
 ```{r Transform our data to UTM 17 and buffer it}
 #Transform the entire EPA dataset to the UTM Zone 17N crs
-sf_EPAair_PM_avg_UTM <- st_transform(sf_EPAair_PM_avg, crs=26917)
+sf_EPAair_PM_avg_UTM <- st_transform(sf_EPAair_PM_avg, crs=26917)#values are now in meters
 
 #Rebuffer the Durham Armory site. Is it now circular? 
 DA_UTM_buffer <- sf_EPAair_PM_avg_UTM %>% 
   filter(Site.Name == 'Durham Armory') %>%     # Filter for the Durham Armory Site
   st_buffer(2000)                              # Buffer 2000 meters
-mapView(DA_UTM_buffer)                         # View the results
+mapView(DA_UTM_buffer)                         # View the results-looks circular
 ```
 
 ## 5.2 Simple spatial analyis
@@ -436,19 +440,18 @@ mapview(sf_DurhamArmory)
 ### 5.2.2 Creating an sfc object from coordinates
 
 Next, we'll create a second geometric point, one located at Grainger Hall (location = 36.00465°N, 78.9427°W). This involves a few steps: - First, we create an sfg object from the coordinates. This is a basic geometric object and has coordinates, but no coordinate reference information. - Then, we "upgrade" our sfg object to an "sfc" object, which *is* a georeferenced, meaning we associate our sfg with a coordinate reference system and thus it now "knows" where it should be placed on Earth's surface.
-
 ```{r}
 #Create a simple feature geometry (sfg) at Grainger Hall 
-grainger_sfg <- st_point(c(-78.9427,36.00465)) 
+grainger_sfg <- st_point(c(-78.9427,36.00465)) #didn't specify coordinate system
 
 #Examine this item
-class(grainger_sfg)
+class(grainger_sfg) #single geometry
 
 #Convert to a sfc object, adding a coordinate reference system
 grainger_sfc <- st_sfc(grainger_sfg, crs=4326)
 
 #Examine this item
-class(grainger_sfc)
+class(grainger_sfc) #geom and reference info
 
 #map both points
 mapview(sf_DurhamArmory, 
@@ -472,13 +475,14 @@ mapview(sf_DurhamArmory,
 #Transform the Grainger hall SFC to UTM Zone 17n
 grainger_sfc_utm <-  st_transform(grainger_sfc, crs=st_crs(sf_DurhamArmory))
 
-#Check the EPSG of our transformed object; it should equal 26917
+#Check the EPSG of our transformed object; it should equal 26917 (the one for UTM zone 17N)
 st_crs(grainger_sfc_utm)$epsg
 
 #Now, try computing distance again
 the_distance <- st_distance(x = sf_DurhamArmory,
                             y = grainger_sfc_utm,
-                            by_element = TRUE)
+                            by_element = TRUE)#keeps it to a number, not a matrix
+the_distance #4692 meters away
 
 #Print the results
 print(str_c("The distance between the two points is ", 
