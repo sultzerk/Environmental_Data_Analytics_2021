@@ -229,17 +229,22 @@ ggplot() +
 
 ```{r}
 #Compute HUC8 wind energy
-
-
+wind_HUC12 <- read.csv('https://raw.githubusercontent.com/ENV859/EnviroAtlasData/main/Wind_Energy.csv',
+colClasses=c('HUC_12'='factor'))%>%
+  mutate(HUC_8=substr(HUC_12,1,8))%>% #taking first 8 characters to make HUC8 column
+  group_by(HUC_8)%>%
+  summarise(meanWindEnergy=mean(AvgWindEnergy))
 
 
 #Join to HUC_8 features
-
+huc8_sf_wind <- huc8_sf %>%
+  left_join(wind_HUC12, by = c('HUC_8')) #keeping only the ones on the left
 
 
 
 #View the outputs
-
+mapView(huc8_sf_wind,
+        zcol="meanWindEnergy")
 
 
 ```
@@ -253,8 +258,8 @@ In our case, all of our county features share the same "STATEFP" value, so we'll
 ```{r Dissolve all counties into a single feature}
 #Aggregate the data using group_by and summarize, just as you would a non-spatial dataframe
 state_sf <- counties_sf %>% 
-  group_by('STATEFP') %>% 
-  summarize(ALAND = sum(ALAND))
+  group_by('STATEFP') %>% #all of counties in this dataset have same STATEFP
+  summarize(ALAND = sum(ALAND)) #summarizing total area of land in NC
 
 #View the data
 mapview(state_sf)
@@ -264,17 +269,19 @@ mapview(state_sf)
 
 ```{r Aggregate the HUC data on an attribute, saving as huc2_sf}
 #List the unique values in the DWQ_Basin field
-
+unique(huc8_sf$DWQ_Basin)
 
 
 
 #Summarize on DWQ Basin value
-
-
-
+huc_compile <- huc8_sf  %>% 
+  group_by(DWQ_Basin)  %>% 
+  summarize(ACRES=sum(ACRES),
+            SQMiles=sum(SQ_MILES))
 
   
 #Map the data
+mapView(huc_compile, zcol="ACRES")
 
 ```
 
@@ -304,7 +311,7 @@ epa_sf_utm <-      st_transform(epa_pm25_sites_sf, crs = 26917)
 counties_sf_utm <- st_transform(counties_sf, crs = 26917)
 state_sf_utm <-    st_transform(state_sf,crs = 26917)
 huc8_sf_utm <-     st_transform(huc8_sf, crs = 26917)
-huc2_utm <-        st_transform(huc2_sf, crs = 26917)
+huc2_utm <-        st_transform(huc_compile, crs = 26917)
 ```
 
 ## 3.3 Clipping and intersecting data
@@ -328,21 +335,21 @@ myMap = mapview(neuse_sf,
 myMap
 
 #Select intersecting counties using matrix subsetting
-neuse_intersect_1 <- counties_sf_utm[neuse_sf,]
+neuse_intersect_1 <- counties_sf_utm[neuse_sf,] #which counties intersect the Neuse
 
 #Select intersecting counties using the `filter()` command
 neuse_intersect_2 <- counties_sf_utm %>% 
-  filter(st_intersects(x = ., y = neuse_sf, sparse = FALSE))
+  filter(st_intersects(x = ., y = neuse_sf, sparse = FALSE))#x=counties_sf_utm, y = intersect polygon
 
 #View the result
 myMap + mapview(neuse_intersect_2, alpha.regions = 0)
 
 #Actually intersect the counties (not just select those that intersect)
-neuse_counties_sf <- neuse_sf %>% 
-  st_intersection(counties_sf_utm)
+neuse_counties_sf <- neuse_sf %>% #start with cookie cutter
+  st_intersection(counties_sf_utm) #then cookie dough
 myMap + mapview(neuse_counties_sf, alpha.regions = 0)
 
-#Update the area the features, now that some are clipped
+#Update the area the features, now that some are clipped (they don't automatically update!)
 neuse_counties_sf <- neuse_counties_sf %>% 
   mutate(Area_m2 = st_area(neuse_counties_sf$geometry)) %>% 
   as.numeric()
@@ -354,18 +361,21 @@ mapview(neuse_counties_sf, zcol='Area_m2')
 
 ```{r EXERCISE: Clipping}
 #Select the Triangle County from the 
-
-
+the_triangle <- counties_sf_utm %>% 
+  filter(NAME %in% c("Chatham", "Durham", "Orange", "Wake"))
 
   
 #Grab the intersecting HUC_8s
+the_hucs <- huc8_sf_utm[the_triangle,]
 
+mapView(the_hucs) + mapView(the_triangle,alpha.regions=0, color="red")
 
 
 #Intersect the HUC_8s
+the_huc_clip <- huc8_sf_utm %>% 
+  st_intersection(the_triangle)
 
-
-
+mapView(the_huc_clip) + mapView(the_triangle, alpha.regions=0, color="red")
 
 ```
 
@@ -391,12 +401,12 @@ myMap <- myMap + geom_sf(data = triCo_centroids, color = 'blue')
 myMap
 
 #Buffer the centroids outward 2km and add them to our
-triCo_centroids_2km <- st_buffer(triCo_centroids, 2000)
+triCo_centroids_2km <- st_buffer(triCo_centroids, 2000) #2000m buffer
 myMap <- myMap + geom_sf(data = triCo_centroids_2km, color = 'orange', fill=NA)
 myMap
 
 #Buffer the counties inward 2km
-triCo_in2km <- st_buffer(triCo, -2000)
+triCo_in2km <- st_buffer(triCo, -2000) #buffer from the outline of the county
 myMap <- myMap + geom_sf(data = triCo_in2km, color = 'green', fill=NA)
 myMap
 
@@ -407,7 +417,7 @@ triCo_centroids_chull <- triCo_centroids %>%
 myMap <- myMap + geom_sf(data = triCo_centroids_chull, color = 'red', fill=NA)
 myMap
 
-#Combine the centroids into one feature and draw voronoi polygons
+#Combine the centroids into one feature and draw voronoi polygons-similar to service areas for monitoring sites
 triCo_centroids_voronoi <- triCo_centroids %>% 
   st_union() %>% 
   st_voronoi()
@@ -443,15 +453,22 @@ resultMask <- st_intersects(counties_sf_utm,
 selCounties <- counties_sf_utm[resultMask,]
 
 #Map the results
-mapView(counties_sf[resultMask,])
+mapView(counties_sf[resultMask,]) #this shows the county that the point is in!
 
 ```
 
 > Questions: how might we use the `st_buffer` function to show all counties within 30km of the site?
 
 ```{r Select counties within a 30 km area from the site}
+site_30km <- st_buffer(theSite_sfc_transformed, 30000)
+mapView(site_30km)
 
+resultMask_30m <- st_intersects(counties_sf_utm,
+                                site_30km,
+                                sparse = FALSE)
 
+selCounties_30km <- counties_sf_utm[resultMask_30m,]
+mapView(selCounties_30km)
 
                             
 ```
@@ -469,7 +486,7 @@ When we import sf, we add the `geom_sf` option to ggplot. This geometry works mu
 ggplot()  +
   geom_sf(data = epa_sf_utm, color='white', size=2) +
   geom_sf(data = counties_sf_utm, aes(fill = ALAND), color = 'white')  +
-  geom_sf(data = state_sf_utm, color='red',size=2) + 
+  geom_sf(data = state_sf_utm, color='red',size=2) + #this polygon outline of the state covers up everything else
   scale_fill_gradient(low="yellow", high="darkgreen")
 
 #Right order
@@ -547,7 +564,7 @@ m2 <- leaflet() %>%
 #install.packages("leafsync")
 library(leafsync)
 
-#Create an lattice view of the two leaflet maps
+#Create an lattice view of the two leaflet maps-2 side by side maps
 latticeview(m1, m2)
 
 #Create a synchronized view...
