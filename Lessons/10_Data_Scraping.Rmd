@@ -42,6 +42,9 @@ You might now feel that web scraping isn't always legitimate - and you're right!
 
 
 > For discussion: Can you give examples of ethical and unethical web scraping?
+Look for an API 
+Don't do if it's for internal use only, says no data scraping
+check on robots.txt (base url/robots.txt)
 
 
 ## 1.1 Exploring the data we want to scrape
@@ -58,7 +61,7 @@ To begin, we'll fetch the contents of the web site into our coding environment u
 
 ```{r fetch.the.web.resource}
 #Fetch the web resources from the URL
-webpage <- read_html('https://www.ncwater.org/WUDC/app/WWATR/report/view/0004-0001/2020')
+webpage <- read_html('https://www.ncwater.org/WUDC/app/WWATR/report/view/0004-0001/2020') #rvest command
 webpage
 ```
 
@@ -94,9 +97,10 @@ With this id known, we can extract it's value in a two-step process. First we us
 
 ```{r scrape.some.data}
 the_registrant <- webpage %>% 
-  html_nodes(".table tr:nth-child(1) td:nth-child(2)") %>% 
+  html_nodes(".table tr:nth-child(1) td:nth-child(2)") %>% #look for all elements that have these descriptors
   html_text()
 the_registrant
+
 ```
 
 EXERCISE:
@@ -121,7 +125,7 @@ Below is the code to extract average daily withdrawls. Add your code to extract 
 avg_withdrawals <- webpage %>% 
   html_nodes('.table:nth-child(7) td:nth-child(7) , .table:nth-child(7) td:nth-child(3)') %>%
   html_text()
-avg_withdrawals
+avg_withdrawals #character class
 
 max_withdrawals <- webpage %>% 
   html_nodes('.table:nth-child(7) td:nth-child(8) , .table:nth-child(7) td:nth-child(4)') %>%
@@ -132,17 +136,17 @@ max_withdrawals
 
 ## 1.4 Construct a dataframe from the data & plot the values
 
-Now that we've scraped the data we want into our coding environment, the next step is to wrangle these data into formats we can work with more easily, i.e. a dataframe. Here, we emply the techniques we've learned earlier in this class to do this and then plot the data. 
+Now that we've scraped the data we want into our coding environment, the next step is to wrangle these data into formats we can work with more easily, i.e. a dataframe. Here, we employ the techniques we've learned earlier in this class to do this and then plot the data. 
 ```{r create.dataframe.from.scrapings}
 #Create a dataframe of withdrawals
-df_withdrawals <- data.frame("Month" = rep(1:12),
-                             "Year" = rep(2000,12),
+df_withdrawals <- data.frame("Month" = rep(1:12), #sequence of numbers from 1-12
+                             "Year" = rep(2000,12), #12 repeats of the year 2000
                              "Avg_Withdrawals_mgd" = as.numeric(avg_withdrawals),
                              "Max_Withdrawals_mgd" = as.numeric(max_withdrawals))
 
 #Modify the dataframe to include the facility name and type as well as the date (as date object)
 df_withdrawals <- df_withdrawals %>% 
-  mutate(Registrant = !!the_registrant,
+  mutate(Registrant = !!the_registrant, #!! means set it to this as a variable
          Facility_name = !!the_facility_name,
          Facility_type = !!the_facility_type,
          Date = my(paste(Month,"-",Year)))
@@ -169,9 +173,9 @@ This begins by setting the parameters of the page we'll be scraping to variables
 ```{r streamline.the.process}
 #Construct the scraping web address, i.e. its URL
 the_base_url <- 'https://www.ncwater.org/WUDC/app/WWATR/report/view'
-the_facility <- '0004-0001'
-the_year <- 2015
-the_scrape_url <- paste0(the_base_url, '/', the_facility, '/', the_year)
+the_facility <- '0218-0238'
+the_year <- 2014
+the_scrape_url <- paste0(the_base_url, '/', the_facility, '/', the_year) #paste0 eliminates space between values
 print(the_scrape_url)
 
 #Retrieve the website contents 
@@ -202,7 +206,7 @@ df_withdrawals <- data.frame("Month" = rep(1:12),
 ggplot(df_withdrawals,aes(x=Date,y=Avg_Withdrawals_mgd)) + 
   geom_line() + 
   geom_smooth(method="loess",se=FALSE) +
-  labs(title = paste("2020 Water usage data for",the_registrant),
+  labs(title = paste(the_year,"Water usage data for",the_registrant),
        subtitle = the_facility_name,
        y="Withdrawal (mgd)",
        x="Date")
@@ -246,6 +250,7 @@ scrape.it <- function(the_year, the_facility){
   
   #Pause for a moment - scraping etiquette
   #Sys.sleep(1) #uncomment this if you are doing bulk scraping!
+  #tells R to wait for 1 second
   
   #Return the dataframe
   return(df_withdrawals)
@@ -254,7 +259,7 @@ scrape.it <- function(the_year, the_facility){
 
 ```{r test.the.function}
 #Run the function
-the_df <- scrape.it(2018,'0004-0001')
+the_df <- scrape.it(2010,'0004-0001')
 view(the_df)
 
 ```
@@ -269,22 +274,18 @@ my_facility = '0004-0001'
 #Use lapply to apply the scrape function
 the_dfs <- lapply(X = the_years,
                   FUN = scrape.it,
-                  the_facility=my_facility)
+                  the_facility=my_facility) #returns list of 3 dataframes
 
 #OR, use purrr's map function
 the_dfs <- map(the_years,scrape.it,the_facility=my_facility)
 
 #Conflate the returned dataframes into a single dataframe
-the_df <- bind_rows(the_dfs)
+the_df <- bind_rows(the_dfs) #tidyverse version of rbind
 
 #Plot, because it's fun and rewarding
 ggplot(the_df,aes(x=Date,y=Avg_Withdrawals_mgd)) + 
   geom_line() + 
-  geom_smooth(method="loess",se=FALSE) +
-  labs(title = paste("2020 Water usage data for",the_registrant),
-       subtitle = the_facility_name,
-       y="Withdrawal (mgd)",
-       x="Date")
+  geom_smooth(method="loess",se=FALSE) 
 ```
 
 # Part 3. Web Crawling
@@ -325,7 +326,7 @@ This website gives a nice example of this: <https://dcl-prog.stanford.edu/purrr-
 ```{r Scrape.all.2020.data}
 
 #Subset the facilities
-the_facility_ids_subset <-  sample(the_facility_ids,20)
+the_facility_ids_subset <-  sample(the_facility_ids,20) #grabbing 20 random samples
 
 #Create a list of the year we want, the same length as the vector above
 the_years <- rep.int(2020,length(the_facility_ids_subset))
@@ -338,7 +339,7 @@ df_2020 <- bind_rows(dfs_2020)
 
 
 #Plot
-ggplot(df_2020,aes(y = Avg_Withdrawals_mgd, x=Facility_type)) +
+ggplot(df_2020,aes(y = Avg_Withdrawals_mgd, x=Facility_name)) +
   geom_boxplot()
 
 ```
