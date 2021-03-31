@@ -22,7 +22,7 @@ output:
 
 ## BASIC R MARKDOWN DOCUMENT STRUCTURE
 
-1. **YAML Header** surrounded by --- on top and bottom
+1. **YAML Header** surrounded by --- on top and bottom (kinda like metadata of document)
     + YAML templates include options for html, pdf, word, markdown, and interactive
     + More information on formatting the YAML header can be found in the cheat sheet
 2. **R Code Chunks** surrounded by ``` on top and bottom
@@ -56,15 +56,17 @@ Lastly, this [website](https://rmarkdown.rstudio.com) give a great & thorough ov
 
 ## WHAT ELSE CAN R MARKDOWN DO?
 See: <https://rmarkdown.rstudio.com> and class recording. 
- * Languages other than R...
- * Various outputs...
+ * Languages other than R...(need to have Python installed to run it though)
+ * Various outputs... (like presentations, Shiny, from 3rd party templates)
+
  
 ------------------------------------------------------------------------
 
 ## WHY R MARKDOWN?
 
-<Fill in our discussion below with bullet points. Use italics and bold for emphasis (hint: use the cheat sheets or `Help` →`Markdown Quick Reference` to figure out how to make bold and italic text).> 
+<Fill in our discussion below with bullet points. Use italics and bold for emphasis (hint: use the cheat sheets or `Help` →`Markdown Quick Reference` to figure out how to make bold and italic text).>  
 
+* ~~R Markdown is limited to one language~~ **many languages**
 
 ## TEXT EDITING CHALLENGE
 
@@ -76,6 +78,10 @@ Create a table below that details the example datasets we have been using in cla
 ### Installing packages
 
 Create an R chunk below that installs the package `knitr`. Instead of commenting out the code, customize the chunk options such that the code is not evaluated (i.e., not run).
+
+```{r install.packages, eval=FALSE}
+install.packages("knitr")
+```
 
 
 ### Setup
