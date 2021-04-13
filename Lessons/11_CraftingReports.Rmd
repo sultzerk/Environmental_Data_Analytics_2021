@@ -70,8 +70,14 @@ See: <https://rmarkdown.rstudio.com> and class recording.
 
 ## TEXT EDITING CHALLENGE
 
-Create a table below that details the example datasets we have been using in class. The first column should contain the names of the datasets and the second column should include some relevant information about the datasets. (Hint: use the cheat sheets to figure out how to make a table in Rmd)
+Create a table below that details the example datasets we have been using in class. The first column should contain the names of the datasets and the second column should include some relevant information about the datasets. (Hint: use the cheat sheets to figure out how to make a table in Rmd)  
 
+**Names of Datasets** | **Information about Datasets**
+----------------- | --------------------------
+ECOTOX neonicotinoid dataset | Neonicotinoids are a class of insecticides used widely in agriculture  
+Niwot Ridge NEON dataset | contains information on litter and woody debris
+EPA Air dataset | contains ozone and PM information
+NTL-LTER raw dataset | contains information about lake chemistry and physics
 
 ## R CHUNK EDITING CHALLENGE
 
@@ -91,6 +97,27 @@ Create an R chunk below called "setup" that checks your working directory, loads
 Load the NTL-LTER_Lake_Nutrients_Raw dataset, display the head of the dataset, and set the date column to a date format.
 
 Customize the chunk options such that the code is run but is not displayed in the final document.
+
+```{r setup, message=FALSE, echo=FALSE}
+getwd()
+library(tidyverse)
+library(lubridate)
+library(knitr)
+
+#setting theme
+mytheme <- theme_classic(base_size = 12) + 
+  theme(axis.text = element_text(color = "black"), 
+        legend.position = "right", 
+        legend.box.background = element_rect(color="black"), legend.background = element_blank(),  
+        plot.title=element_text(hjust = 0.5))
+#makes font size bigger, puts legend on right, puts box around legend, centers title in middle
+
+#loading dataset and looking at display and setting date column
+Lake_data <- read.csv("../Data/Raw/NTL-LTER_Lake_Nutrients_Raw.csv")
+
+
+
+```
 
 
 ### Data Exploration, Wrangling, and Visualization
